@@ -16,7 +16,6 @@ fans:
           # Has to be more then 60 for 5 seconds before switching to another level
           - level: level 0
             max: 60
-            delay: 5
 
           # Use laptop default level until it cools down to 45 C
           # Has to be less then 45 for 10 seconds before switching to another level
