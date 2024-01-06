@@ -5,7 +5,7 @@ Overheating can destroy your hardware.
 
 # 💡 About
 
-That's a small service to control fan speed. It reads temperature sensors and current power profile and maps it to fan level. Mapping is set by configuration file. There is no user interface and there is no plan to make it.
+That's a small service to control fan speed. It reads temperature sensors and current power profile and maps them to fan level. Mapping is set by the configuration file. There is no user interface, and there is no plan to make one.
 
 Main features:
 
@@ -13,7 +13,7 @@ Main features:
 * Power profile support.
 * Delay before changing fan speed.
 
-Originally created for Thinkpad T14 gen 4 (Intel). There is thinkfan but it does not support power profiles.
+Originally created for Thinkpad T14 gen 4 (Intel). There is [thinkfan](https://github.com/vmatare/thinkfan), but it does not support power profiles.
 
 There are other fan [speed control tools](https://wiki.archlinux.org/title/fan_speed_control).
 
@@ -37,7 +37,7 @@ sudo modprobe thinkpad_acpi
 
 ## 🌡️ Hwmon sensors
 
-It should work on every device but you need to find sensor name and label.
+It should work on every device, but you need to find sensor name and label.
 
 ```bash
 tail -n 1 $(ls /sys/class/hwmon/hwmon*/{name,temp*_label,temp*_input} | sort)
@@ -49,7 +49,7 @@ tail -n 1 $(ls /sys/class/hwmon/hwmon*/{name,temp*_label,temp*_input} | sort)
 
 ## 🚀 Profile platform
 
-There is a file `/sys/firmware/acpi/platform_profile` which contains current power profile. In KDE and GNOME you can control current profile from the user interface.
+There is a file `/sys/firmware/acpi/platform_profile` that contains current power profile. In KDE and GNOME you can control current profile from the user interface.
 
 ```bash
 # To see available profiles
@@ -62,7 +62,7 @@ cat /sys/firmware/acpi/platform_profile_choices
 
 # 🧪 Testing config
 
-Binary file has `-d` flag which enables debug logs. And `-c` flag to pass config file path.
+Binary file has `-d` flag which enables debug logs. And `-c` flag to pass the config file path.
 
 ```bash
 sudo fanctl -d -c ./conf/fanctl.yaml
