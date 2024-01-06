@@ -28,7 +28,7 @@ fans:
     # 0 by default.
     # delay: 0
 
-    # List of sensor names from sensors section which are used to select.
+    # List of sensor names from sensors section which are used to select
     # current level.
     # By default uses all sensors.
     # sensors:
@@ -100,9 +100,9 @@ fans:
 # All sensors.
 # Has to be at least one sensor.
 sensors:
-  # Fan driver type
-  # Available types: thinkpad
-  # Required
+  # Fan driver type.
+  # Available types: hwmon
+  # Required.
   - type: hwmon
 
     # Sensor name.
