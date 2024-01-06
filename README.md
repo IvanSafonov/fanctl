@@ -1,6 +1,6 @@
 # ⚠️ Warning ⚠️
 
-Think twice before use it. You use on your own risk.
+Think twice before use it. You use it on your own risk.
 Overheating can destroy your hardware.
 
 # 💡 About
