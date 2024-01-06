@@ -86,3 +86,13 @@ sudo systemctl status fanctl
 ## Deb package
 
 Run `build-deb.sh` to build deb package.
+
+```bash
+./build-deb.sh
+sudo apt install ./fanctl*.deb
+# Change /etc/fanctl.yaml according to your hardware
+sudo systemctl enable fanctl.service fanctl-wakeup.service
+sudo systemctl start fanctl
+# Check service status
+sudo systemctl status fanctl
+```
