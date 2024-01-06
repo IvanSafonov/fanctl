@@ -30,7 +30,7 @@ echo "options thinkpad_acpi fan_control=1" | sudo tee -a /usr/lib/modprobe.d/thi
 sudo modprobe thinkpad_acpi
 ```
 
-### Links
+#### Links
 
 * [Arch wiki](https://wiki.archlinux.org/title/fan_speed_control#ThinkPad_laptops)
 * [Thinkpad acpi documentation](https://www.kernel.org/doc/Documentation/laptops/thinkpad-acpi.txt)
@@ -43,7 +43,7 @@ It should work on every device but you need to find sensor name and label.
 tail -n 1 $(ls /sys/class/hwmon/hwmon*/{name,temp*_label,temp*_input} | sort)
 ```
 
-### Links
+#### Links
 
 * [Hwmon kernel documentation](https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface)
 
@@ -56,7 +56,11 @@ There is a file `/sys/firmware/acpi/platform_profile` which contains current pow
 cat /sys/firmware/acpi/platform_profile_choices
 ```
 
-# Testing config
+#### Links
+
+* [Kernel commit](https://patchwork.kernel.org/project/linux-acpi/patch/20201218174759.667457-2-markpearson@lenovo.com/)
+
+# 🧪 Testing config
 
 Binary file has `-d` flag which enables debug logs. And `-c` flag to pass config file path.
 
@@ -64,7 +68,7 @@ Binary file has `-d` flag which enables debug logs. And `-c` flag to pass config
 sudo fanctl -d -c ./conf/fanctl.yaml
 ```
 
-# Install
+# 📦 Install
 
 ## Manual
 
