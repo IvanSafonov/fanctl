@@ -85,3 +85,4 @@ sudo systemctl status fanctl
 
 ## Deb package
 
+Run `build-deb.sh` to build deb package.
