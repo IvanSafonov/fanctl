@@ -1,4 +1,4 @@
-# Thinkpad T14 gen 4 example.
+# Thinkpad T14 gen 4 (intel) example.
 # Uses cpu package temp sensor which is max temp for all cores.
 # Makes fan quiet with power save profile. And a bit less noizy with
 # balanced profile.
