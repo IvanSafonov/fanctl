@@ -1,0 +1,14 @@
+[Unit]
+Description=fanctl 0.0.1
+After=sysinit.target
+After=systemd-modules-load.service
+
+[Service]
+Type=exec
+ExecStart=/usr/sbin/fanctl
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+Also=fanctl-wakeup.service

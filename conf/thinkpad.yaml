@@ -1,0 +1,46 @@
+# Thinkpad T14 gen 4 example.
+# Uses cpu package temp sensor which is max temp for all cores.
+# Makes fan quiet with power save profile. And a bit less noizy with
+# balanced profile.
+# ⚠️ Don't forget to enable fan control in thinkpad_acpi kernel module ⚠️
+
+fans:
+  - name: cpu
+    type: thinkpad
+
+    profiles:
+      # Power save profile in KDE or GNOME ui
+      - name: low-power
+        levels:
+          # Disable fan if cpu temperature less than 60 C
+          # Has to be more then 60 for 5 seconds before switching to another level
+          - level: level 0
+            max: 60
+            delay: 5
+
+          # Use laptop default level until it cools down to 45 C
+          # Has to be less then 45 for 10 seconds before switching to another level
+          - level: level auto
+            min: 45
+            delay: 10
+
+      # Balanced profile in KDE or GNOME ui
+      - name: balanced
+        levels:
+          - level: level 0
+            max: 50
+          - level: level auto
+            min: 40
+            delay: 20
+
+sensors:
+  # Using sensor with thinkpad in /sys/class/hwmon/hwmon*/name
+  # and CPU in /sys/class/hwmon/hwmon*/temp*_label.
+  - type: hwmon
+    name: cpu
+    sensor: thinkpad
+    label: CPU
+
+profile:
+  # Using /sys/firmware/acpi/platform_profile
+  type: platform

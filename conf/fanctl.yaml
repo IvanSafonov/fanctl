@@ -1,0 +1,140 @@
+# Time in seconds between reading sensors.
+# 1 second by default.
+# period: 1
+
+# Time in seconds between setting the same level.
+# When user space fan software doesn't set fan level for a while
+# driver can switch to auto mode by itself. Thinkpad acpi driver
+# does this after 2 minutes.
+# 60 seconds by default.
+# repeat: 60
+
+# All controlled fans.
+# Has to be at least one fan.
+fans:
+    # Fan driver type
+    # Available types: thinkpad
+    # Required
+  - type: thinkpad
+    
+    # Name for logs.
+    # name: cpu
+    
+    # Default fan level.
+    # Default value provided from driver.
+    # level: level auto
+    
+    # Time in seconds before switching to another level.
+    # 0 by default.
+    # delay: 0
+
+    # List of sensor names from sensors section which are used to select.
+    # current level.
+    # By default uses all sensors.
+    # sensors:
+      # - cpu1
+      # - cpu2
+
+    # Multiple sensors select algorithm.
+    # Available values: min, max, average.
+    # max by default.
+    # select: max
+
+    # Driver system file path.
+    # path: 
+
+    # Levels for power profiles.
+    # Profile levels have priority over fan levels.
+    # profiles:
+      # Power profile name.
+      # Required.
+      # - name: low-power
+        # Time in seconds before switching to another level.
+        # 0 by default.
+        # delay: 0
+        
+        # Sensor value to fan level mapping.
+        # Order matters. First matching will be used.
+        # If there is no matching level default fan level is used.
+        # levels:
+          # Fan level.
+          # Required.
+          # - level: level 1
+          
+            # Minimal sensor value.
+            # Required if max is not set.
+            # -∞ by default.
+            # min: 10
+
+            # Maximal sensor value.
+            # Required if min is not set.
+            # +∞ by default.
+            # max: 55
+
+            # Time in seconds before switching to another level.
+            # 0 by default.
+            # delay: 0
+
+    # Sensor value to fan level mapping.
+    # Order matters. First matching will be used.
+    # If there is no matching level default fan level is used.
+    # levels:
+      # Fan level.
+      # Required.
+      # - level: level 1
+      
+        # Minimal sensor value.
+        # Required if max is not set.
+        # -∞ by default.
+        # min: 10
+
+        # Maximal sensor value.
+        # Required if min is not set.
+        # +∞ by default.
+        # max: 55
+
+        # Time in seconds before switching to another level.
+        # 0 by default.
+        # delay: 0
+
+# All sensors.
+# Has to be at least one sensor.
+sensors:
+  # Fan driver type
+  # Available types: thinkpad
+  # Required
+  - type: hwmon
+
+    # Sensor name.
+    # name: cpu1
+
+    # Sensor value multiplier.
+    # Default value provided from driver.
+    # factor: 0.001
+
+    # Sensor value constant.
+    # Default value provided from driver.
+    # add: 0
+
+    # Multiple system files select algorithm.
+    # hwmon has multiple per each cpu core.
+    # Available values: min, max, average.
+    # max by default.
+    # select: max
+
+    # Sensor name.
+    # sensor: coretemp
+    
+    # Sensor label.
+    # label: Package
+
+# Profile settings.
+# Have to be set if fan profiles are used.
+# profile:
+  # Profile driver type.
+  # Available types: platform.
+  # Required.
+  # type: platform
+
+  # Profile system file path.
+  # path: /sys/profile
