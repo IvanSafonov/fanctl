@@ -21,6 +21,8 @@ Adding new drivers and other improvements are welcome.
 
 # ⚙️ Supported drivers
 
+For now it support only thinkpads, but it's not that hard to add new drivers.
+
 ## 💻  Thinkpad ACPI Fan
 
 ❗Fan control is disabled by default. You need to enable it.
@@ -60,7 +62,11 @@ cat /sys/firmware/acpi/platform_profile_choices
 
 * [Kernel commit](https://patchwork.kernel.org/project/linux-acpi/patch/20201218174759.667457-2-markpearson@lenovo.com/)
 
-# 🧪 Testing config
+# 🧪 Configuration
+
+There is [conf/fanctl.yaml](conf/fanctl.yaml) file with all available parameters and some explanation. You can use it to create your own config.
+
+[conf/thinkpad.yaml](conf/thinkpad.yaml) is an example I tested on T14.
 
 Binary file has `-d` flag which enables debug logs. And `-c` flag to pass the config file path.
 
