@@ -16,8 +16,7 @@ import (
 
 func TestServiceNew(t *testing.T) {
 	conf := config.Config{
-		Period: utils.Ptr(0.2),
-		Repeat: utils.Ptr(45.0),
+		Period: models.SecondsPtr(0.2),
 		Fans: []config.Fan{
 			{Type: models.FanTypeThinkpad, Name: "cpu"},
 			{Type: models.FanTypeThinkpad, Name: "gc"},
@@ -36,10 +35,9 @@ func TestServiceNew(t *testing.T) {
 	s := New(conf)
 
 	assert.Equal(200*time.Millisecond, s.period)
-	assert.Equal(45*time.Second, s.repeat)
 
 	assert.Len(s.fans, 2)
-	assert.Equal("cpu", s.fans[0].conf.Name)
+	assert.Equal("cpu", s.fans[0].Name)
 	_, ok := s.fans[0].driver.(*drivers.FanThinkpad)
 	assert.True(ok)
 
@@ -80,6 +78,7 @@ func TestServiceRunUnnamedWithProfiles(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	fan := NewMockFanDriver(ctrl)
+	fan.EXPECT().Defaults().Return(drivers.FanDefaults{Repeat: 1000})
 	sensor0 := NewMockSensorDriver(ctrl)
 	sensor1 := NewMockSensorDriver(ctrl)
 	profile := NewMockProfileDriver(ctrl)
@@ -92,20 +91,20 @@ func TestServiceRunUnnamedWithProfiles(t *testing.T) {
 		"1": sensor1,
 	}
 	s.profileDriver = profile
-	s.fans = []Fan{{
-		driver: fan,
-		conf: config.Fan{
+	s.fans = []Fan{NewFan(
+		fan,
+		config.Fan{
 			Profiles: []config.ProfileLevels{
 				{
 					Name: "low",
 					Levels: []config.Level{
 						{Level: "0", Max: utils.Ptr(50.0)},
-						{Level: "1", Min: utils.Ptr(45.0), Delay: utils.Ptr(1000.0)},
+						{Level: "1", Min: utils.Ptr(45.0), Delay: models.SecondsPtr(1000.0)},
 					},
 				},
 			},
-		},
-	}}
+		}),
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -129,27 +128,27 @@ func TestServiceRunNamed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	fan := NewMockFanDriver(ctrl)
+	fan.EXPECT().Defaults().Return(drivers.FanDefaults{Repeat: 1000})
 	sensor0 := NewMockSensorDriver(ctrl)
 	sensor1 := NewMockSensorDriver(ctrl)
 
 	s := New(config.Config{})
 
 	s.period = time.Microsecond
-	s.repeat = time.Hour
 	s.sensorDrivers = map[string]SensorDriver{
 		"nvm": sensor0,
 		"cpu": sensor1,
 	}
-	s.fans = []Fan{{
-		driver: fan,
-		conf: config.Fan{
+	s.fans = []Fan{NewFan(
+		fan,
+		config.Fan{
 			Sensors: []string{"cpu"},
 			Levels: []config.Level{
 				{Level: "0", Max: utils.Ptr(50.0)},
-				{Level: "1", Min: utils.Ptr(45.0), Delay: utils.Ptr(1000.0)},
+				{Level: "1", Min: utils.Ptr(45.0), Delay: models.SecondsPtr(1000.0)},
 			},
-		},
-	}}
+		}),
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -172,23 +171,23 @@ func TestServiceRunRepeat(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	fan := NewMockFanDriver(ctrl)
+	fan.EXPECT().Defaults().Return(drivers.FanDefaults{Repeat: 0})
 	sensor0 := NewMockSensorDriver(ctrl)
 
 	s := New(config.Config{})
 
 	s.period = time.Microsecond
-	s.repeat = time.Nanosecond
 	s.sensorDrivers = map[string]SensorDriver{
 		"0": sensor0,
 	}
-	s.fans = []Fan{{
-		driver: fan,
-		conf: config.Fan{
+	s.fans = []Fan{NewFan(
+		fan,
+		config.Fan{
 			Levels: []config.Level{
 				{Level: "0", Max: utils.Ptr(50.0)},
 			},
-		},
-	}}
+		}),
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 

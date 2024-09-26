@@ -6,11 +6,12 @@ import (
 	"time"
 
 	"github.com/goccy/go-yaml"
+
+	"github.com/IvanSafonov/fanctl/internal/models"
 )
 
 type Config struct {
-	Period  *float64
-	Repeat  *float64
+	Period  *models.Seconds
 	Fans    []Fan
 	Sensors []Sensor
 	Profile *Profile
@@ -23,92 +24,33 @@ type Fan struct {
 	Sensors []string
 	Select  string
 
-	Level    string
-	Delay    *float64
-	Levels   Levels
-	Profiles []ProfileLevels
+	Level     string
+	Repeat    *models.Seconds
+	Delay     *models.Seconds
+	DelayUp   *models.Seconds `yaml:"delayUp"`
+	DelayDown *models.Seconds `yaml:"delayDown"`
+	Levels    []Level
+	Profiles  []ProfileLevels
 
-	Path string
-}
-
-func (f *Fan) FindLevel(value float64, profile string) Level {
-	level, found := f.profileLevel(value, profile)
-	if !found {
-		level, found = f.Levels.Find(value)
-	}
-
-	if level.Delay == nil {
-		level.Delay = f.Delay
-	}
-
-	if !found {
-		level.Level = f.Level
-	}
-
-	return level
-}
-
-func (f *Fan) profileLevel(value float64, profile string) (Level, bool) {
-	if profile == "" {
-		return Level{}, false
-	}
-
-	for _, fp := range f.Profiles {
-		if fp.Name == profile {
-			return fp.Levels.Find(value)
-		}
-	}
-
-	return Level{}, false
+	Path     string
+	RawLevel bool `yaml:"rawLevel"`
 }
 
 type ProfileLevels struct {
-	Name   string
-	Levels Levels
-	Delay  *float64
-}
-
-type Levels []Level
-
-func (l Levels) Find(value float64) (Level, bool) {
-	for _, level := range l {
-		if level.Contains(value) {
-			return level, true
-		}
-	}
-
-	return Level{}, false
+	Name      string
+	Levels    []Level
+	Delay     *models.Seconds
+	DelayUp   *models.Seconds `yaml:"delayUp"`
+	DelayDown *models.Seconds `yaml:"delayDown"`
 }
 
 type Level struct {
-	Min   *float64
-	Max   *float64
-	Level string
-	Delay *float64
-}
-
-func (l *Level) IsEmpty() bool {
-	return l.Level == ""
-}
-
-func (l *Level) Contains(value float64) bool {
-	if l.IsEmpty() {
-		return false
-	}
-
-	if l.Min != nil && value < *l.Min {
-		return false
-	}
-
-	if l.Max != nil && value > *l.Max {
-		return false
-	}
-
-	return true
-}
-
-func (l *Level) DelayDuration() time.Duration {
-	return ToDuration(l.Delay)
+	Min       *float64
+	Max       *float64
+	Level     string
+	Delay     *models.Seconds
+	DelayUp   *models.Seconds `yaml:"delayUp"`
+	DelayDown *models.Seconds `yaml:"delayDown"`
 }
 
 type Sensor struct {

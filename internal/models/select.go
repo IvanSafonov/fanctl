@@ -14,19 +14,15 @@ var (
 	SelectFuncs = []string{SelectFuncAverage, SelectFuncMax, SelectFuncMin}
 )
 
-func SelectValue(selectFunc string, values []float64) float64 {
-	if len(values) == 0 {
-		return 0
-	}
-
+func SelectFunc(selectFunc string) func(values []float64) float64 {
 	switch selectFunc {
 	case SelectFuncMin:
-		return slices.Min(values)
+		return slices.Min
 	case SelectFuncAverage:
-		return SelectAverage(values)
+		return SelectAverage
+	default:
+		return slices.Max
 	}
-
-	return slices.Max(values)
 }
 
 func SelectAverage(values []float64) float64 {

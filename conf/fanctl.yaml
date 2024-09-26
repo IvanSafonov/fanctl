@@ -2,13 +2,6 @@
 # 1 second by default.
 # period: 1
 
-# Time in seconds between setting the same level.
-# When user space fan software doesn't set fan level for a while
-# driver can switch to auto mode by itself. Thinkpad acpi driver
-# does this after 2 minutes.
-# 60 seconds by default.
-# repeat: 60
-
 # All controlled fans.
 # Has to be at least one fan.
 fans:
@@ -19,10 +12,17 @@ fans:
     
     # Name for logs.
     # name: cpu
+
+    # Time in seconds between setting the same level.
+    # When user space fan software doesn't set fan level for a while
+    # driver can switch to auto mode by itself. Thinkpad acpi driver
+    # does this after 2 minutes.
+    # 60 seconds by default.
+    # repeat: 60
     
     # Default fan level.
     # Default value provided from driver.
-    # level: level auto
+    # level: auto
     
     # Time in seconds before switching to another level.
     # 0 by default.
@@ -59,7 +59,7 @@ fans:
         # levels:
           # Fan level.
           # Required.
-          # - level: level 1
+          # - level: 1
           
             # Minimal sensor value.
             # Required if max is not set.
@@ -81,7 +81,7 @@ fans:
     # levels:
       # Fan level.
       # Required.
-      # - level: level 1
+      # - level: 1
       
         # Minimal sensor value.
         # Required if max is not set.

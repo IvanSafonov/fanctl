@@ -18,11 +18,6 @@ func validate(config *Config) error {
 		config.Period = nil
 	}
 
-	if config.Repeat != nil && !InRange(1, *config.Repeat, 3600) {
-		slog.Warn("repeat: must be within [1, 3600]")
-		config.Repeat = nil
-	}
-
 	if err := validateSensors(config); err != nil {
 		return err
 	}
@@ -108,15 +103,20 @@ func validateFans(config *Config) error {
 			return fmt.Errorf("%s.type: must be one of [%s]", fanPrefix, strings.Join(models.FanTypes, ", "))
 		}
 
-		if !validateDelay(fan.Delay, fanPrefix) {
-			fan.Delay = nil
+		if fan.Repeat != nil && !InRange(1, *fan.Repeat, 3600) {
+			slog.Warn(fmt.Sprintf("%s.repeat: must be within [1, 3600]", fanPrefix))
+			fan.Repeat = nil
 		}
+
+		validateDelay(&fan.Delay, fanPrefix+".delay")
+		validateDelay(&fan.DelayUp, fanPrefix+".delayUp")
+		validateDelay(&fan.DelayDown, fanPrefix+".delayDown")
 
 		if !validateSelect(fan.Select, fanPrefix) {
 			fan.Select = ""
 		}
 
-		if err := validateLevels(fan.Levels, fanPrefix); err != nil {
+		if err := validateLevels(fan.Levels, fanPrefix, fan); err != nil {
 			return err
 		}
 
@@ -131,11 +131,11 @@ func validateFans(config *Config) error {
 				return fmt.Errorf("%s.name: must be set", profilePrefix)
 			}
 
-			if !validateDelay(profile.Delay, profilePrefix) {
-				profile.Delay = nil
-			}
+			validateDelay(&profile.Delay, profilePrefix+".delay")
+			validateDelay(&profile.DelayUp, profilePrefix+".delayUp")
+			validateDelay(&profile.DelayDown, profilePrefix+".delayDown")
 
-			if err := validateLevels(profile.Levels, profilePrefix); err != nil {
+			if err := validateLevels(profile.Levels, profilePrefix, fan); err != nil {
 				return err
 			}
 
@@ -180,7 +180,7 @@ func validateFans(config *Config) error {
 	return nil
 }
 
-func validateLevels(levels []Level, paramPrefix string) error {
+func validateLevels(levels []Level, paramPrefix string, fan *Fan) error {
 	if len(levels) == 0 {
 		return nil
 	}
@@ -192,6 +192,7 @@ func validateLevels(levels []Level, paramPrefix string) error {
 		if level.Level == "" {
 			return fmt.Errorf("%s.level: must be set", levelPrefix)
 		}
+		level.Level = validateLevel(level.Level, levelPrefix, fan)
 
 		if level.Min == nil && level.Max == nil {
 			return fmt.Errorf("%s: min or max must be set", levelPrefix)
@@ -201,21 +202,19 @@ func validateLevels(levels []Level, paramPrefix string) error {
 			return fmt.Errorf("%s: min must be less than max", levelPrefix)
 		}
 
-		if !validateDelay(level.Delay, levelPrefix) {
-			level.Delay = nil
-		}
+		validateDelay(&level.Delay, levelPrefix+".delay")
+		validateDelay(&level.DelayUp, levelPrefix+".delayUp")
+		validateDelay(&level.DelayDown, levelPrefix+".delayDown")
 	}
 
 	return nil
 }
 
-func validateDelay(delay *float64, paramPrefix string) bool {
-	if delay != nil && !InRange(0, *delay, 100) {
-		slog.Warn(fmt.Sprintf("%s.delay: must be within [0, 100]", paramPrefix))
-		return false
+func validateDelay(delay **models.Seconds, paramName string) {
+	if *delay != nil && !InRange(0, **delay, 100) {
+		slog.Warn(fmt.Sprintf("%s: must be within [0, 100]", paramName))
+		*delay = nil
 	}
-
-	return true
 }
 
 func validateSelect(value, paramPrefix string) bool {
@@ -226,6 +225,22 @@ func validateSelect(value, paramPrefix string) bool {
 
 	return true
 }
+
+func validateLevel(level, paramPrefix string, fan *Fan) string {
+	if fan.Type != models.FanTypeThinkpad || fan.RawLevel {
+		return level
+	}
+
+	level = strings.TrimPrefix(strings.TrimSpace(level), "level ")
+	if !slices.Contains(thinkpadLevels, level) {
+		slog.Warn(fmt.Sprintf("%s.level: should be one of [%s]",
+			paramPrefix, strings.Join(thinkpadLevels, ", ")))
+	}
+	return level
+}
+
+var thinkpadLevels = []string{"0", "1", "2", "3", "4", "5", "6", "7",
+	"auto", "disengaged", "full-speed"}
 
 func InRange[T cmp.Ordered](min T, value T, max T) bool {
 	return value >= min && value <= max

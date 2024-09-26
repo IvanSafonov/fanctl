@@ -1,6 +1,7 @@
 package drivers
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"os"
@@ -10,40 +11,47 @@ import (
 
 	"github.com/IvanSafonov/fanctl/internal/config"
 	"github.com/IvanSafonov/fanctl/internal/models"
-	"github.com/IvanSafonov/fanctl/internal/utils"
 )
 
 type SensorHwmon struct {
-	conf       config.Sensor
+	path       string
+	sensor     string
+	label      string
+	factor     float64
+	add        float64
 	inputFiles []string
+	selectFunc func([]float64) float64
 }
 
 func NewSensorHwmon(conf config.Sensor) *SensorHwmon {
-	if conf.Path == "" {
-		conf.Path = "/sys/class/hwmon"
+	factor := 0.001
+	if conf.Factor != nil {
+		factor = *conf.Factor
 	}
 
-	if conf.Sensor == "" {
-		conf.Sensor = "coretemp"
-	}
-
-	if conf.Factor == nil {
-		conf.Factor = utils.Ptr(0.001)
+	add := 0.0
+	if conf.Add != nil {
+		add = *conf.Add
 	}
 
 	return &SensorHwmon{
-		conf: conf,
+		path:       cmp.Or(conf.Path, "/sys/class/hwmon"),
+		sensor:     cmp.Or(conf.Sensor, "coretemp"),
+		label:      conf.Label,
+		factor:     factor,
+		add:        add,
+		selectFunc: models.SelectFunc(conf.Select),
 	}
 }
 
 func (s *SensorHwmon) Init() error {
-	sensorsDirs, err := os.ReadDir(s.conf.Path)
+	sensorsDirs, err := os.ReadDir(s.path)
 	if err != nil {
 		return fmt.Errorf("read dir: %w", err)
 	}
 
 	for _, entry := range sensorsDirs {
-		sensorDir := path.Join(s.conf.Path, entry.Name())
+		sensorDir := path.Join(s.path, entry.Name())
 		sensorNameFile := path.Join(sensorDir, "name")
 		if _, err := os.Stat(sensorNameFile); os.IsNotExist(err) {
 			continue
@@ -54,7 +62,7 @@ func (s *SensorHwmon) Init() error {
 			return fmt.Errorf("read sensor name: %w", err)
 		}
 
-		if !strings.Contains(string(sensorName), s.conf.Sensor) {
+		if !strings.Contains(string(sensorName), s.sensor) {
 			continue
 		}
 
@@ -68,13 +76,13 @@ func (s *SensorHwmon) Init() error {
 				continue
 			}
 
-			if s.conf.Label != "" {
+			if s.label != "" {
 				label, err := ReadSysFile(path.Join(sensorDir, sensorFileInfo.Name()))
 				if err != nil {
 					return fmt.Errorf("read label: %w", err)
 				}
 
-				if !strings.Contains(string(label), s.conf.Label) {
+				if !strings.Contains(string(label), s.label) {
 					continue
 				}
 			}
@@ -109,10 +117,10 @@ func (s *SensorHwmon) Value() (float64, error) {
 			return 0, fmt.Errorf("parse input: %w", err)
 		}
 
-		value = utils.CorrectValue(value, s.conf.Factor, s.conf.Add)
+		value = value*s.factor + s.add
 		values = append(values, value)
 	}
 
-	result := models.SelectValue(s.conf.Select, values)
+	result := s.selectFunc(values)
 	return result, nil
 }

@@ -32,7 +32,7 @@ func TestFanThinkpadSetLevel(t *testing.T) {
 	defer os.Remove(acpiFile.Name())
 
 	fan := NewFanThinkpad(config.Fan{Path: acpiFile.Name()})
-	err = fan.SetLevel("level 1")
+	err = fan.SetLevel("1")
 	assert.NoError(err)
 
 	data, err := os.ReadFile(acpiFile.Name())

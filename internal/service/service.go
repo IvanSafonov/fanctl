@@ -7,109 +7,33 @@ import (
 	"time"
 
 	"github.com/IvanSafonov/fanctl/internal/config"
-	"github.com/IvanSafonov/fanctl/internal/drivers"
-	"github.com/IvanSafonov/fanctl/internal/models"
 )
 
 type Service struct {
 	period time.Duration
-	repeat time.Duration
 
 	profileDriver ProfileDriver
 	sensorDrivers map[string]SensorDriver
 	fans          []Fan
 
-	currentProfile string
-	currentValues  map[string]float64
+	profile string
+	values  map[string]float64
 }
-
-type FanDriver interface {
-	Init() error
-	SetLevel(level string) error
-	DefaultLevel() string
-}
-
-type ProfileDriver interface {
-	Init() error
-	State() (string, error)
-}
-
-type SensorDriver interface {
-	Init() error
-	Value() (float64, error)
-}
-
-//go:generate mockgen -package service -destination ./service_mock_test.go . FanDriver,ProfileDriver,SensorDriver
 
 func New(conf config.Config) *Service {
 	s := Service{
+		period:        time.Second,
 		profileDriver: createProfile(conf.Profile),
 		sensorDrivers: createSensors(conf.Sensors),
 		fans:          createFans(conf.Fans),
-
-		currentValues: make(map[string]float64, len(conf.Sensors)),
+		values:        make(map[string]float64, len(conf.Sensors)),
 	}
 
-	if conf.Period == nil {
-		s.period = time.Second
-	} else {
-		s.period = config.ToDuration(conf.Period)
-	}
-
-	if conf.Repeat == nil {
-		s.repeat = time.Minute
-	} else {
-		s.repeat = config.ToDuration(conf.Repeat)
+	if conf.Period != nil {
+		s.period = conf.Period.Duration()
 	}
 
 	return &s
-}
-
-func createProfile(conf *config.Profile) ProfileDriver {
-	if conf == nil {
-		return nil
-	}
-
-	switch conf.Type {
-	case models.ProfileTypePlatform:
-		return drivers.NewProfilePlatform(*conf)
-	}
-
-	return nil
-}
-
-func createSensors(confs []config.Sensor) map[string]SensorDriver {
-	sensors := make(map[string]SensorDriver, len(confs))
-
-	for _, conf := range confs {
-		switch conf.Type {
-		case models.SensorTypeHwmon:
-			sensors[conf.Name] = drivers.NewSensorHwmon(conf)
-		}
-	}
-
-	return sensors
-}
-
-func createFans(confs []config.Fan) []Fan {
-	fans := make([]Fan, 0, len(confs))
-
-	for _, conf := range confs {
-		switch conf.Type {
-		case models.FanTypeThinkpad:
-			driver := drivers.NewFanThinkpad(conf)
-			if conf.Level == "" {
-				conf.Level = driver.DefaultLevel()
-			}
-
-			fans = append(fans, Fan{
-				conf:   conf,
-				driver: driver,
-			})
-		}
-	}
-
-	return fans
 }
 
 func (s *Service) Init() error {
@@ -130,7 +54,7 @@ func (s *Service) Init() error {
 	for _, fan := range s.fans {
 		err := fan.driver.Init()
 		if err != nil {
-			return fmt.Errorf("fan (%s) init: %w", fan.conf.Name, err)
+			return fmt.Errorf("fan (%s) init: %w", fan.Name, err)
 		}
 	}
 
@@ -145,14 +69,18 @@ func (s *Service) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			if err := s.update(ctx); err != nil {
+			if err := s.Update(ctx); err != nil {
 				return err
 			}
 		}
 	}
 }
 
-func (s *Service) update(ctx context.Context) error {
+// Updates service state
+// - Collect all sensor values to currentValues
+// - Update current profile
+// - Update fan level
+func (s *Service) Update(ctx context.Context) error {
 	if err := s.updateValues(); err != nil {
 		return err
 	}
@@ -162,17 +90,17 @@ func (s *Service) update(ctx context.Context) error {
 	}
 
 	if slog.Default().Enabled(ctx, slog.LevelDebug) {
-		fields := make([]any, 0, 2*len(s.currentValues)+2)
-		fields = append(fields, "profile", s.currentProfile)
-		for name, value := range s.currentValues {
+		fields := make([]any, 0, 2*len(s.values)+2)
+		fields = append(fields, "profile", s.profile)
+		for name, value := range s.values {
 			fields = append(fields, "sensor_"+name, value)
 		}
 
-		slog.Debug("State", fields...)
+		slog.Debug("state", fields...)
 	}
 
 	for i := range s.fans {
-		if err := s.updateFan(&s.fans[i]); err != nil {
+		if err := s.fans[i].UpdateLevel(s.values); err != nil {
 			return err
 		}
 	}
@@ -187,7 +115,7 @@ func (s *Service) updateValues() error {
 			return fmt.Errorf("get sensor (%s) value: %w", name, err)
 		}
 
-		s.currentValues[name] = value
+		s.values[name] = value
 	}
 
 	return nil
@@ -203,55 +131,14 @@ func (s *Service) updateProfile() error {
 		return fmt.Errorf("get profile: %w", err)
 	}
 
-	if s.currentProfile != profile {
+	if s.profile != profile {
+		slog.Info("profile changed", "profile", profile)
+		s.profile = profile
+
 		for i := range s.fans {
-			s.fans[i].currentLevel = config.Level{}
+			s.fans[i].UpdateProfile(profile)
 		}
 	}
-
-	s.currentProfile = profile
-	return nil
-}
-
-func (s *Service) updateFan(fan *Fan) error {
-	value := s.fanValue(fan)
-	level, changed := fan.CheckLevel(value, s.currentProfile)
-
-	if !changed && time.Since(fan.updated) < s.repeat {
-		return nil
-	}
-
-	if err := fan.SetLevel(level); err != nil {
-		return err
-	}
-
-	fields := make([]any, 0, 2*len(s.currentValues)+8)
-	fields = append(fields, "fan", fan.conf.Name, "level", level.Level, "profile",
-		s.currentProfile, "value", value)
-	for name, value := range s.currentValues {
-		fields = append(fields, "sensor_"+name, value)
-	}
-
-	slog.Info("Update", fields...)
 
 	return nil
-}
-
-func (s *Service) fanValue(fan *Fan) float64 {
-	var values []float64
-	if len(fan.conf.Sensors) == 0 {
-		values = make([]float64, 0, len(s.currentValues))
-		for _, value := range s.currentValues {
-			values = append(values, value)
-		}
-	} else {
-		values = make([]float64, 0, len(fan.conf.Sensors))
-		for _, name := range fan.conf.Sensors {
-			if value, ok := s.currentValues[name]; ok {
-				values = append(values, value)
-			}
-		}
-	}
-
-	return models.SelectValue(fan.conf.Select, values)
 }

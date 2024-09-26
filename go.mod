@@ -1,6 +1,6 @@
 module github.com/IvanSafonov/fanctl
 
-go 1.21
+go 1.23
 
 require (
 	github.com/goccy/go-yaml v1.12.0

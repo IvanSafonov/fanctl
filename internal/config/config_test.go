@@ -21,13 +21,16 @@ func TestConfigLoadFull(t *testing.T) {
 
 	_, err = confFile.WriteString(`
     period: 0.5
-    repeat: 30
     
     fans:
     - name: cpu
       type: thinkpad
+      rawLevel: true
       level: auto
       delay: 3
+      delayUp: 4
+      delayDown: 5
+      repeat: 30
       select: average
       path: /some/path
       sensors:
@@ -35,18 +38,24 @@ func TestConfigLoadFull(t *testing.T) {
     
       profiles:
       - name: perf
-        delay: 4
+        delay: 19
+        delayUp: 18
+        delayDown: 17
         levels:
         - min: 10
           max: 55
           level: level 1
           delay: 5
+          delayUp: 6
+          delayDown: 7
     
       levels:
       - min: 11
         max: 56
         level: level 2
         delay: 6
+        delayUp: 7
+        delayDown: 8
     
     sensors:
     - name: cpu1
@@ -67,36 +76,45 @@ func TestConfigLoadFull(t *testing.T) {
 	config, err := Load(confFile.Name())
 	assert.NoError(err)
 	assert.Equal(Config{
-		Period: utils.Ptr(0.5),
-		Repeat: utils.Ptr(30.0),
+		Period: models.SecondsPtr(0.5),
 		Fans: []Fan{
 			{
-				Name:   "cpu",
-				Type:   models.FanTypeThinkpad,
-				Level:  "auto",
-				Delay:  utils.Ptr(3.0),
-				Select: models.SelectFuncAverage,
-				Path:   "/some/path",
+				Name:      "cpu",
+				Type:      models.FanTypeThinkpad,
+				RawLevel:  true,
+				Level:     "auto",
+				Delay:     models.SecondsPtr(3.0),
+				DelayUp:   models.SecondsPtr(4.0),
+				DelayDown: models.SecondsPtr(5.0),
+				Repeat:    models.SecondsPtr(30),
+				Select:    models.SelectFuncAverage,
+				Path:      "/some/path",
 				Profiles: []ProfileLevels{
 					{
-						Name:  "perf",
-						Delay: utils.Ptr(4.0),
+						Name:      "perf",
+						Delay:     models.SecondsPtr(19.0),
+						DelayUp:   models.SecondsPtr(18.0),
+						DelayDown: models.SecondsPtr(17.0),
 						Levels: []Level{
 							{
-								Min:   utils.Ptr(10.0),
-								Max:   utils.Ptr(55.0),
-								Level: "level 1",
-								Delay: utils.Ptr(5.0),
+								Min:       utils.Ptr(10.0),
+								Max:       utils.Ptr(55.0),
+								Level:     "level 1",
+								Delay:     models.SecondsPtr(5.0),
+								DelayUp:   models.SecondsPtr(6.0),
+								DelayDown: models.SecondsPtr(7.0),
 							},
 						},
 					},
 				},
 				Levels: []Level{
 					{
-						Min:   utils.Ptr(11.0),
-						Max:   utils.Ptr(56.0),
-						Level: "level 2",
-						Delay: utils.Ptr(6.0),
+						Min:       utils.Ptr(11.0),
+						Max:       utils.Ptr(56.0),
+						Level:     "level 2",
+						Delay:     models.SecondsPtr(6.0),
+						DelayUp:   models.SecondsPtr(7.0),
+						DelayDown: models.SecondsPtr(8.0),
 					},
 				},
 				Sensors: []string{"cpu1"},
@@ -130,26 +148,34 @@ func TestLoadConf_ReplacesNotCriticalMistakes(t *testing.T) {
 
 	_, err = confFile.WriteString(`
     period: 0.009
-    repeat: 0.9
     
     fans:
     - type: thinkpad
       select: fake
       sensors: [s2, s2]
+      repeat: 0.9
       delay: 101
+      delayUp: 101
+      delayDown: 101
     
       profiles:
       - name: perf
         delay: -1
+        delayUp: -2
+        delayDown: -3
         levels:
         - min: 10
-          level: 1
+          level: speed 1
           delay: 101
+          delayUp: 102
+          delayDown: 103
     
       levels:
       - min: 11
-        level: 2
+        level:   level 7  
         delay: 101
+        delayUp: 101
+        delayDown: 101
     
     sensors:
     - name: s2
@@ -176,7 +202,7 @@ func TestLoadConf_ReplacesNotCriticalMistakes(t *testing.T) {
 						Levels: []Level{
 							{
 								Min:   utils.Ptr(10.0),
-								Level: "1",
+								Level: "speed 1",
 							},
 						},
 					},
@@ -184,7 +210,7 @@ func TestLoadConf_ReplacesNotCriticalMistakes(t *testing.T) {
 				Levels: []Level{
 					{
 						Min:   utils.Ptr(11.0),
-						Level: "2",
+						Level: "7",
 					},
 				},
 			},
