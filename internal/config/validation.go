@@ -108,6 +108,14 @@ func validateFans(config *Config) error {
 			fan.Repeat = nil
 		}
 
+		if fan.Level != "" {
+			fan.Level = validateLevel(fan.Level, fanPrefix, fan)
+		}
+
+		if fan.SuspendLevel != "" {
+			fan.SuspendLevel = validateLevel(fan.SuspendLevel, fanPrefix+".suspend", fan)
+		}
+
 		validateDelay(&fan.Delay, fanPrefix+".delay")
 		validateDelay(&fan.DelayUp, fanPrefix+".delayUp")
 		validateDelay(&fan.DelayDown, fanPrefix+".delayDown")

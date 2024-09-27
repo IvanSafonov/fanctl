@@ -14,10 +14,17 @@ import (
 )
 
 func main() {
+	timeInLogs := false
 	logLevel := new(slog.LevelVar)
 	logLevel.Set(slog.LevelInfo)
 	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: logLevel,
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if !timeInLogs && a.Key == slog.TimeKey {
+				return slog.Attr{}
+			}
+			return a
+		},
 	}))
 	slog.SetDefault(log)
 
@@ -34,6 +41,7 @@ func main() {
 
 	if debug {
 		logLevel.Set(slog.LevelDebug)
+		timeInLogs = true
 	}
 
 	if cpuprofile != "" {

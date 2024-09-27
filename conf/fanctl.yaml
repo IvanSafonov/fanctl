@@ -43,6 +43,9 @@ fans:
     # Driver system file path.
     # path: 
 
+    # Level that will be set before laptop suspend.
+    # suspendLevel: auto
+
     # Levels for power profiles.
     # Profile levels have priority over fan levels.
     # profiles:

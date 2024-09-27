@@ -1,0 +1,10 @@
+[Unit]
+Description=Notify fanctl before suspend
+Before=suspend.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '/bin/kill -s USR1 $(/bin/systemctl show --value -p MainPID fanctl.service)'
+
+[Install]
+WantedBy=suspend.target

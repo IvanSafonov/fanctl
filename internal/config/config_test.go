@@ -27,6 +27,7 @@ func TestConfigLoadFull(t *testing.T) {
       type: thinkpad
       rawLevel: true
       level: auto
+      suspendLevel: 2
       delay: 3
       delayUp: 4
       delayDown: 5
@@ -79,16 +80,17 @@ func TestConfigLoadFull(t *testing.T) {
 		Period: models.SecondsPtr(0.5),
 		Fans: []Fan{
 			{
-				Name:      "cpu",
-				Type:      models.FanTypeThinkpad,
-				RawLevel:  true,
-				Level:     "auto",
-				Delay:     models.SecondsPtr(3.0),
-				DelayUp:   models.SecondsPtr(4.0),
-				DelayDown: models.SecondsPtr(5.0),
-				Repeat:    models.SecondsPtr(30),
-				Select:    models.SelectFuncAverage,
-				Path:      "/some/path",
+				Name:         "cpu",
+				Type:         models.FanTypeThinkpad,
+				RawLevel:     true,
+				Level:        "auto",
+				SuspendLevel: "2",
+				Delay:        models.SecondsPtr(3.0),
+				DelayUp:      models.SecondsPtr(4.0),
+				DelayDown:    models.SecondsPtr(5.0),
+				Repeat:       models.SecondsPtr(30),
+				Select:       models.SelectFuncAverage,
+				Path:         "/some/path",
 				Profiles: []ProfileLevels{
 					{
 						Name:      "perf",
@@ -154,6 +156,7 @@ func TestLoadConf_ReplacesNotCriticalMistakes(t *testing.T) {
       select: fake
       sensors: [s2, s2]
       repeat: 0.9
+      level: ddd
       delay: 101
       delayUp: 101
       delayDown: 101
@@ -195,6 +198,7 @@ func TestLoadConf_ReplacesNotCriticalMistakes(t *testing.T) {
 			{
 				Name:    "0",
 				Type:    models.FanTypeThinkpad,
+				Level:   "ddd",
 				Sensors: []string{"s2"},
 				Profiles: []ProfileLevels{
 					{

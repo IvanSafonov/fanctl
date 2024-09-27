@@ -87,7 +87,7 @@ sudo cp ./fanctl /usr/sbin/fanctl
 sudo cp ./systemd/* /lib/systemd/system/
 sudo cp ./conf/fanctl.yaml /etc/
 # Change /etc/fanctl.yaml according to your hardware
-sudo systemctl enable fanctl.service fanctl-wakeup.service
+sudo systemctl enable fanctl.service fanctl-wakeup.service fanctl-suspend.service
 sudo systemctl start fanctl
 # Check service status
 sudo systemctl status fanctl
@@ -100,7 +100,7 @@ Download deb package [here](https://github.com/IvanSafonov/fanctl/releases) and 
 ```bash
 sudo apt install ./fanctl*.deb
 # Change /etc/fanctl.yaml according to your hardware
-sudo systemctl enable fanctl.service fanctl-wakeup.service
+sudo systemctl enable fanctl.service fanctl-wakeup.service fanctl-suspend.service
 sudo systemctl start fanctl
 # Check service status
 sudo systemctl status fanctl

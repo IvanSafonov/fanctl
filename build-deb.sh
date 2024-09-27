@@ -43,3 +43,5 @@ echo -n "Installed-Size: " >> $CONTROL
 du -sx --exclude DEBIAN $TMP_PACKAGE_DIR | grep -o -E ^[0-9]+ >> $CONTROL
 
 dpkg-deb --build $TMP_PACKAGE_DIR $PACKAGE_FILENAME
+
+rm -rf $TMP_PACKAGE_DIR

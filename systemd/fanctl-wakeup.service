@@ -1,10 +1,10 @@
 [Unit]
 Description=Restart fanctl after waking up
-After=sleep.target
+After=suspend.target
 
 [Service]
 Type=oneshot
 ExecStart=/bin/systemctl --no-block restart fanctl.service
 
 [Install]
-WantedBy=sleep.target
+WantedBy=suspend.target

@@ -16,6 +16,7 @@ type Fan struct {
 	driver          FanDriver
 	repeat          time.Duration
 	defaultLevel    string
+	suspendLevel    string
 	defaultLevels   Levels
 	profileLevels   map[string]Levels
 	selectValueFunc func(map[string]float64) float64
@@ -52,6 +53,7 @@ func NewFan(driver FanDriver, conf config.Fan) Fan {
 		repeat:          defaults.Repeat.Duration(),
 		levels:          levels,
 		defaultLevel:    defaults.Level,
+		suspendLevel:    defaults.SuspendLevel,
 		defaultLevels:   levels,
 		profileLevels:   profileLevels,
 		selectValueFunc: selectValueFunc,
@@ -100,6 +102,14 @@ func (f *Fan) SetDefaultLevel() {
 	}
 }
 
+func (f *Fan) SetSuspendLevel() {
+	slog.Info("set suspend level", "fan", f.Name, "level", f.suspendLevel)
+
+	if err := f.driver.SetLevel(f.suspendLevel); err != nil {
+		slog.Error("failed to set suspend level", "error", err)
+	}
+}
+
 func allValues(values map[string]float64) []float64 {
 	result := make([]float64, 0, len(values))
 	for _, value := range values {
@@ -119,10 +129,11 @@ func namedValues(values map[string]float64, names []string) []float64 {
 }
 
 type FanDefaults struct {
-	Level     string
-	Repeat    models.Seconds
-	DelayUp   *models.Seconds
-	DelayDown *models.Seconds
+	Level        string
+	SuspendLevel string
+	Repeat       models.Seconds
+	DelayUp      *models.Seconds
+	DelayDown    *models.Seconds
 }
 
 func NewFanDefaults(driver FanDriver, conf config.Fan) FanDefaults {
@@ -132,10 +143,11 @@ func NewFanDefaults(driver FanDriver, conf config.Fan) FanDefaults {
 	}
 
 	return FanDefaults{
-		Level:     cmp.Or(drvDefaults.Level, conf.Level),
-		Repeat:    drvDefaults.Repeat,
-		DelayUp:   cmp.Or(conf.DelayUp, conf.Delay),
-		DelayDown: cmp.Or(conf.DelayDown, conf.Delay),
+		Level:        cmp.Or(drvDefaults.Level, conf.Level),
+		SuspendLevel: cmp.Or(drvDefaults.Level, conf.SuspendLevel),
+		Repeat:       drvDefaults.Repeat,
+		DelayUp:      cmp.Or(conf.DelayUp, conf.Delay),
+		DelayDown:    cmp.Or(conf.DelayDown, conf.Delay),
 	}
 }
 

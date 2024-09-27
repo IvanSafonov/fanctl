@@ -32,8 +32,9 @@ type Fan struct {
 	Levels    []Level
 	Profiles  []ProfileLevels
 
-	Path     string
-	RawLevel bool `yaml:"rawLevel"`
+	Path         string
+	RawLevel     bool   `yaml:"rawLevel"`
+	SuspendLevel string `yaml:"suspendLevel"`
 }
 
 type ProfileLevels struct {

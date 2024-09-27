@@ -4,5 +4,5 @@ set -e
 
 if [ "$1" = "remove" ] && [ -d /run/systemd/system ]; then
   systemctl stop fanctl.service || true
-  systemctl disable fanctl.service fanctl-wakeup.service || true
+  systemctl disable fanctl.service fanctl-wakeup.service fanctl-suspend.service || true
 fi

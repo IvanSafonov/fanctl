@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/IvanSafonov/fanctl/internal/config"
@@ -63,12 +66,16 @@ func (s *Service) Init() error {
 
 func (s *Service) Run(ctx context.Context) error {
 	ticker := time.NewTicker(s.period)
+	suspendSignal := make(chan os.Signal, 1)
+	signal.Notify(suspendSignal, syscall.SIGUSR1)
 
 	for {
 		select {
 		case <-ctx.Done():
-			s.setDefaultLevel()
+			s.SetDefaultLevel()
 			return nil
+		case <-suspendSignal:
+			s.Suspend(ctx)
 		case <-ticker.C:
 			if err := s.Update(ctx); err != nil {
 				return err
@@ -109,9 +116,22 @@ func (s *Service) Update(ctx context.Context) error {
 	return nil
 }
 
-func (s *Service) setDefaultLevel() {
+func (s *Service) SetDefaultLevel() {
 	for i := range s.fans {
 		s.fans[i].SetDefaultLevel()
+	}
+}
+
+func (s *Service) Suspend(ctx context.Context) {
+	slog.Info("got suspend signal")
+	for i := range s.fans {
+		s.fans[i].SetSuspendLevel()
+	}
+
+	ticker := time.NewTicker(30 * time.Second)
+	select {
+	case <-ctx.Done():
+	case <-ticker.C:
 	}
 }
 
