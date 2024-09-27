@@ -78,7 +78,7 @@ func TestServiceRunUnnamedWithProfiles(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	fan := NewMockFanDriver(ctrl)
-	fan.EXPECT().Defaults().Return(drivers.FanDefaults{Repeat: 1000})
+	fan.EXPECT().Defaults().Return(drivers.FanDefaults{Repeat: 1000, Level: "auto"})
 	sensor0 := NewMockSensorDriver(ctrl)
 	sensor1 := NewMockSensorDriver(ctrl)
 	profile := NewMockProfileDriver(ctrl)
@@ -119,6 +119,8 @@ func TestServiceRunUnnamedWithProfiles(t *testing.T) {
 		cancel()
 	})
 
+	fan.EXPECT().SetLevel("auto")
+
 	err := s.Run(ctx)
 	assert.NoError(err)
 }
@@ -128,7 +130,7 @@ func TestServiceRunNamed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	fan := NewMockFanDriver(ctrl)
-	fan.EXPECT().Defaults().Return(drivers.FanDefaults{Repeat: 1000})
+	fan.EXPECT().Defaults().Return(drivers.FanDefaults{Repeat: 1000, Level: "auto"})
 	sensor0 := NewMockSensorDriver(ctrl)
 	sensor1 := NewMockSensorDriver(ctrl)
 
@@ -162,6 +164,8 @@ func TestServiceRunNamed(t *testing.T) {
 		cancel()
 	})
 
+	fan.EXPECT().SetLevel("auto")
+
 	err := s.Run(ctx)
 	assert.NoError(err)
 }
@@ -171,7 +175,7 @@ func TestServiceRunRepeat(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	fan := NewMockFanDriver(ctrl)
-	fan.EXPECT().Defaults().Return(drivers.FanDefaults{Repeat: 0})
+	fan.EXPECT().Defaults().Return(drivers.FanDefaults{Repeat: 0, Level: "auto"})
 	sensor0 := NewMockSensorDriver(ctrl)
 
 	s := New(config.Config{})
@@ -197,6 +201,8 @@ func TestServiceRunRepeat(t *testing.T) {
 	fan.EXPECT().SetLevel("0").MinTimes(1).Do(func(level string) {
 		cancel()
 	})
+
+	fan.EXPECT().SetLevel("auto")
 
 	err := s.Run(ctx)
 	assert.NoError(err)

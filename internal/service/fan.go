@@ -15,6 +15,7 @@ type Fan struct {
 
 	driver          FanDriver
 	repeat          time.Duration
+	defaultLevel    string
 	defaultLevels   Levels
 	profileLevels   map[string]Levels
 	selectValueFunc func(map[string]float64) float64
@@ -50,6 +51,7 @@ func NewFan(driver FanDriver, conf config.Fan) Fan {
 		driver:          driver,
 		repeat:          defaults.Repeat.Duration(),
 		levels:          levels,
+		defaultLevel:    defaults.Level,
 		defaultLevels:   levels,
 		profileLevels:   profileLevels,
 		selectValueFunc: selectValueFunc,
@@ -80,13 +82,22 @@ func (f *Fan) UpdateLevel(values map[string]float64) error {
 	}
 
 	level := f.levels.Level()
+	slog.Info("update level", "fan", f.Name, "level", level, "value", value)
+
 	if err := f.driver.SetLevel(level); err != nil {
 		return fmt.Errorf("set fan (%s) level: %w", f.Name, err)
 	}
 
 	f.updated = time.Now()
-	slog.Info("update level", "fan", f.Name, "level", level, "value", value)
 	return nil
+}
+
+func (f *Fan) SetDefaultLevel() {
+	slog.Info("set default level", "fan", f.Name, "level", f.defaultLevel)
+
+	if err := f.driver.SetLevel(f.defaultLevel); err != nil {
+		slog.Error("failed to set default level", "error", err)
+	}
 }
 
 func allValues(values map[string]float64) []float64 {

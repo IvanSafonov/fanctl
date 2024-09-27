@@ -67,6 +67,7 @@ func (s *Service) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
+			s.setDefaultLevel()
 			return nil
 		case <-ticker.C:
 			if err := s.Update(ctx); err != nil {
@@ -106,6 +107,12 @@ func (s *Service) Update(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (s *Service) setDefaultLevel() {
+	for i := range s.fans {
+		s.fans[i].SetDefaultLevel()
+	}
 }
 
 func (s *Service) updateValues() error {

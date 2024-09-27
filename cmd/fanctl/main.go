@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime/pprof"
+	"syscall"
 
 	"github.com/IvanSafonov/fanctl/internal/config"
 	"github.com/IvanSafonov/fanctl/internal/service"
@@ -53,7 +54,7 @@ func main() {
 		return
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	srv := service.New(conf)
