@@ -11,6 +11,7 @@ Main features:
 * Multiple fans and sensors.
 * Power profile support.
 * Delay before changing fan speed.
+* Change fan level before sleep/suspend.
 
 Originally created for Thinkpad T14 gen 4 (Intel). There is [thinkfan](https://github.com/vmatare/thinkfan), but it does not support power profiles.
 
