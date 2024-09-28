@@ -143,8 +143,8 @@ func NewFanDefaults(driver FanDriver, conf config.Fan) FanDefaults {
 	}
 
 	return FanDefaults{
-		Level:        cmp.Or(drvDefaults.Level, conf.Level),
-		SuspendLevel: cmp.Or(drvDefaults.Level, conf.SuspendLevel),
+		Level:        cmp.Or(conf.Level, drvDefaults.Level),
+		SuspendLevel: cmp.Or(conf.SuspendLevel, drvDefaults.Level),
 		Repeat:       drvDefaults.Repeat,
 		DelayUp:      cmp.Or(conf.DelayUp, conf.Delay),
 		DelayDown:    cmp.Or(conf.DelayDown, conf.Delay),
